@@ -223,11 +223,16 @@ export default function Home() {
   }
 
   const handleYearToggle = (year: string) => {
-    setSelectedYears(prev => 
-      prev.includes(year) 
+    setSelectedYears(prev =>
+      prev.includes(year)
         ? prev.filter(y => y !== year)
         : [...prev, year]
     )
+  }
+
+  const handleResetFilters = () => {
+    setSelectedSkills([])
+    setSelectedYears([])
   }
 
   return (
@@ -291,13 +296,14 @@ export default function Home() {
         <JoinForm isOpen={showJoinForm} onClose={() => setShowJoinForm(false)} onAddStudent={addStudent} />
         
         {/* Filter Modal */}
-        <FilterModal 
+        <FilterModal
           isOpen={showFilterModal}
           onClose={() => setShowFilterModal(false)}
           selectedSkills={selectedSkills}
           selectedYears={selectedYears}
           onSkillToggle={handleSkillToggle}
           onYearToggle={handleYearToggle}
+          onReset={handleResetFilters}
         />
       </div>
     </BackgroundOverlay>
