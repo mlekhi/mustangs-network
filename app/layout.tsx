@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { IBM_Plex_Mono } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 
 const ibmPlexMono = IBM_Plex_Mono({ 
@@ -103,7 +104,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={ibmPlexMono.variable}>{children}</body>
+      <body className={ibmPlexMono.variable}>
+        {children}
+        <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
+      </body>
     </html>
   )
 }

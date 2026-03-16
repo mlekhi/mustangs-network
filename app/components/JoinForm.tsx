@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 
 interface JoinFormProps {
@@ -52,6 +52,28 @@ export default function JoinForm({ isOpen, onClose, onAddStudent }: JoinFormProp
   })
 
   const [errors, setErrors] = useState<FormErrors>({})
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const turnstileRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (isOpen && turnstileRef.current && (window as any).turnstile) {
+      (window as any).turnstile.render(turnstileRef.current, {
+        sitekey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '1x00000000000000000000AA',
+        callback: (token: string) => setTurnstileToken(token),
+      })
+    }
+  }, [isOpen])
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -100,6 +122,21 @@ export default function JoinForm({ isOpen, onClose, onAddStudent }: JoinFormProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Check cooldown
+    const lastSubmit = localStorage.getItem('lastJoinSubmit')
+    if (lastSubmit && Date.now() - parseInt(lastSubmit) < 5 * 60 * 1000) {
+      const remaining = Math.ceil((5 * 60 * 1000 - (Date.now() - parseInt(lastSubmit))) / 60000)
+      alert(`Please wait ${remaining} minute(s) before submitting again.`)
+      return
+    }
+
+    // Check Turnstile
+    if (!turnstileToken) {
+      alert('Please complete the CAPTCHA verification.')
+      return
+    }
+
     if (validateForm()) {
       try {
         let profileImageUrl = undefined
@@ -156,7 +193,9 @@ export default function JoinForm({ isOpen, onClose, onAddStudent }: JoinFormProp
           alert('Error adding student. Please try again.')
           return
         }
-        
+
+        localStorage.setItem('lastJoinSubmit', Date.now().toString())
+
         // Add student to the local list for immediate display
         onAddStudent({
           name: formData.name,
@@ -198,17 +237,15 @@ export default function JoinForm({ isOpen, onClose, onAddStudent }: JoinFormProp
   return (
     <div className="fixed inset-0 z-50">
       {/* Backdrop */}
-      <div 
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
       
       {/* Modal positioned bottom right */}
       <div className="absolute bottom-8 right-4 bg-black p-2 w-[352px] max-h-[80vh] overflow-y-auto rounded-lg">
-        {/* Header */}
-        <div className="flex items-center justify-center mb-2">
+        {/* Sticky close button */}
+        <div className="sticky top-0 z-10 flex justify-end bg-black pb-1">
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors"
+            className="text-gray-400 hover:text-white transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -402,6 +439,8 @@ export default function JoinForm({ isOpen, onClose, onAddStudent }: JoinFormProp
             </div>
             {errors.profilePhoto && <p className="text-red-400 text-sm mt-1">{errors.profilePhoto}</p>}
           </div>
+
+          <div ref={turnstileRef} className="mb-4" />
 
           {/* Submit Button */}
           <button
