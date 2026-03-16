@@ -59,7 +59,7 @@ export default function SearchSidebar({ searchTerm, onSearchChange, students, on
           {students.map((student, index) => (
             <div
               key={index}
-              className="py-3 px-6 hover:bg-gray-900 cursor-pointer transition-colors group rounded-sm"
+              className="py-3 px-6 hover:bg-gray-900/50 cursor-pointer transition-colors group rounded-sm"
               onClick={() => onStudentClick(student.name)}
             >
               <div className="grid grid-cols-6 gap-4 text-sm">
