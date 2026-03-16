@@ -95,7 +95,12 @@ export default function JoinForm({ isOpen, onClose, onAddStudent }: JoinFormProp
   const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, profilePhoto: 'Image must be under 10 MB' }))
+        return
+      }
       setFormData(prev => ({ ...prev, profilePhoto: file }))
+      setErrors(prev => ({ ...prev, profilePhoto: undefined }))
     }
   }
 
