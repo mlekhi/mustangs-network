@@ -55,14 +55,15 @@ export default function SearchSidebar({ searchTerm, onSearchChange, students, on
             <div className="col-span-4">SITE</div>
           </div>
         </div>
-        <div className="px-6">
+        <div className="px-6 pb-32">
           {students.map((student, index) => (
-            <div key={index} className="py-3 hover:bg-gray-900 transition-colors">
+            <div
+              key={index}
+              className="py-3 hover:bg-gray-900 cursor-pointer transition-colors group"
+              onClick={() => onStudentClick(student.name)}
+            >
               <div className="grid grid-cols-6 gap-4 text-sm">
-                <div 
-                  className="col-span-2 text-gray-400 cursor-pointer transition-colors"
-                  onClick={() => onStudentClick(student.name)}
-                >
+                <div className="col-span-2 text-gray-400 group-hover:text-white transition-colors">
                   {student.name}
                 </div>
                 <div className="col-span-4 text-gray-400 cursor-pointer">
